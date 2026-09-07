@@ -35,7 +35,7 @@ func BuildMagicPacket(mac string) ([]byte, error) {
 // broadcast addresses like 255.255.255.255 work.
 func Send(packet []byte, addr string, port int) error {
 	ip := net.ParseIP(addr)
-	if ip == nil {
+	if ip == nil || ip.To4() == nil {
 		return fmt.Errorf("invalid broadcast address %q", addr)
 	}
 	conn, err := net.ListenUDP("udp4", nil)
@@ -64,13 +64,25 @@ func Send(packet []byte, addr string, port int) error {
 // RelayScript returns a POSIX sh script that emits a magic packet on the
 // machine it runs on, picking the best available sender: wake (this tool),
 // else wakeonlan, else a python3 one-liner with SO_BROADCAST.
-func RelayScript(bcast, mac string) string {
-	hexMac := strings.ToLower(strings.ReplaceAll(strings.ReplaceAll(mac, "-", ""), ":", ""))
-	packetHex := strings.Repeat("ff", 6) + strings.Repeat(hexMac, 16)
-	py := fmt.Sprintf(`import socket;s=socket.socket(socket.AF_INET,socket.SOCK_DGRAM);s.setsockopt(socket.SOL_SOCKET,socket.SO_BROADCAST,1);s.sendto(bytes.fromhex("%s"),("%s",9))`, packetHex, bcast)
+//
+// Both inputs are validated and re-rendered in canonical form before being
+// interpolated, so the script is safe to hand to a remote shell.
+func RelayScript(bcast, mac string) (string, error) {
+	pkt, err := BuildMagicPacket(mac)
+	if err != nil {
+		return "", err
+	}
+	canonicalMac := net.HardwareAddr(pkt[6:12]).String()
+	ip := net.ParseIP(bcast)
+	if ip == nil || ip.To4() == nil {
+		return "", fmt.Errorf("invalid broadcast address %q", bcast)
+	}
+	canonicalBcast := ip.To4().String()
+	packetHex := hex.EncodeToString(pkt)
+	py := fmt.Sprintf(`import socket;s=socket.socket(socket.AF_INET,socket.SOCK_DGRAM);s.setsockopt(socket.SOL_SOCKET,socket.SO_BROADCAST,1);s.sendto(bytes.fromhex("%s"),("%s",%d))`, packetHex, canonicalBcast, DefaultPort)
 	return fmt.Sprintf(`if command -v wake >/dev/null 2>&1; then wake %s --broadcast %s
 elif command -v wakeonlan >/dev/null 2>&1; then wakeonlan -i %s %s
 elif command -v python3 >/dev/null 2>&1; then python3 -c '%s'
 else echo "no WOL sender (wake/wakeonlan/python3) found" >&2; exit 1
-fi`, mac, bcast, bcast, mac, py)
+fi`, canonicalMac, canonicalBcast, canonicalBcast, canonicalMac, py), nil
 }
