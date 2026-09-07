@@ -8,3 +8,6 @@ coverage.txt
 
 # Editor / OS
 .DS_Store
+
+# Local planning docs (private)
+/docs/
