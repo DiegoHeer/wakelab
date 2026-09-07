@@ -125,3 +125,23 @@ func TestWakeWaitSucceeds(t *testing.T) {
 	}
 	mustContain(t, env.out.String(), "All online.")
 }
+
+func TestWakeRawMacRejectsWaitAndVia(t *testing.T) {
+	env := newTestEnv(t, envHosts, envGroups)
+	if err := env.run("aa:bb:cc:dd:ee:ff", "--wait"); err == nil {
+		t.Error("raw MAC with --wait must error")
+	}
+	env2 := newTestEnv(t, envHosts, envGroups)
+	if err := env2.run("aa:bb:cc:dd:ee:ff", "--via", "proxmox"); err == nil {
+		t.Error("raw MAC with --via must error")
+	}
+}
+
+func TestWakeWaitNothingWoken(t *testing.T) {
+	env := newTestEnv(t, "Host nomac\n", "")
+	err := env.run("nomac", "--wait")
+	if err == nil {
+		t.Fatal("--wait with nothing woken must exit non-zero")
+	}
+	mustContain(t, env.out.String(), "Nothing was woken")
+}

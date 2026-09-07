@@ -37,6 +37,9 @@ func (a *App) runWake(ctx context.Context, target string, opts wakeOptions) erro
 
 	// A raw MAC wakes directly — this is what relays run: wake <mac> --broadcast <ip>.
 	if mac := host.NormalizeMac(target); mac != "" {
+		if opts.wait || opts.port != "" || opts.viaSet {
+			return fmt.Errorf("a raw MAC target supports only --broadcast (no --wait, --port, or --via)")
+		}
 		bcast := opts.broadcast
 		if bcast == "" {
 			bcast = "255.255.255.255"
@@ -96,6 +99,10 @@ func (a *App) runWake(ctx context.Context, target string, opts wakeOptions) erro
 	}
 	if !opts.wait {
 		return nil
+	}
+	if len(woken) == 0 {
+		fmt.Fprintf(a.Out, "%sNothing was woken, nothing to wait for.%s\n", a.color(ansiRed), a.color(ansiReset))
+		return errSilent
 	}
 	return a.waitForHosts(ctx, woken, opts.port, opts.timeout)
 }
