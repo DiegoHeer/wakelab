@@ -233,3 +233,17 @@ func TestGroupsEmpty(t *testing.T) {
 	}
 	mustContain(t, env.out.String(), "No groups defined.")
 }
+
+func TestAddRejectsSignedPort(t *testing.T) {
+	env := newTestEnv(t, "", "")
+	if err := env.run("add", "nas", "--mac", "aa:bb:cc:dd:ee:ff", "--port", "+22"); err == nil {
+		t.Error("signed --port must be rejected")
+	}
+}
+
+func TestGroupAddRejectsWhitespaceName(t *testing.T) {
+	env := newTestEnv(t, envHosts, "")
+	if err := env.run("group", "add", "my group", "--devices", "server"); err == nil {
+		t.Error("group name with whitespace must be rejected")
+	}
+}

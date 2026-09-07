@@ -3,7 +3,6 @@ package cli
 import (
 	"context"
 	"fmt"
-	"strconv"
 	"strings"
 
 	"github.com/DiegoHeer/wakelab/internal/config"
@@ -17,7 +16,7 @@ func checkNewName(a *App, name string, hosts []host.Host, groups []host.Group) e
 	if name == "" {
 		return fmt.Errorf("missing host name")
 	}
-	if strings.ContainsAny(name, " \t") {
+	if strings.ContainsAny(name, " \t\n\r") {
 		return fmt.Errorf("invalid host name '%s' (no whitespace allowed)", name)
 	}
 	if host.Reserved(name) {
@@ -90,10 +89,8 @@ Optional extras (any source above):
 			if err := checkNewName(a, name, hosts, groups); err != nil {
 				return err
 			}
-			if port != "" {
-				if _, err := strconv.Atoi(port); err != nil {
-					return fmt.Errorf("--port needs a number")
-				}
+			if port != "" && !host.ValidPort(port) {
+				return fmt.Errorf("--port needs a number")
 			}
 			mac := rawMac
 			switch {

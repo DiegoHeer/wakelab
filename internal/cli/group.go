@@ -43,6 +43,9 @@ func wantsHelp(args []string) bool {
 
 // checkNewGroupName rejects a name that cannot become a new group.
 func checkNewGroupName(name string, hosts []host.Host, groups []host.Group) error {
+	if name == "" || strings.ContainsAny(name, " \t\n\r") {
+		return fmt.Errorf("invalid group name '%s' (no whitespace allowed)", name)
+	}
 	if host.Reserved(name) {
 		return fmt.Errorf("'%s' is a reserved word", name)
 	}

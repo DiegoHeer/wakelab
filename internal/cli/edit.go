@@ -2,7 +2,6 @@ package cli
 
 import (
 	"fmt"
-	"strconv"
 
 	"github.com/DiegoHeer/wakelab/internal/config"
 	"github.com/DiegoHeer/wakelab/internal/host"
@@ -71,7 +70,7 @@ Renaming also updates the host inside any groups.`,
 				final.Broadcast = newBcast
 			}
 			if newPort != "" {
-				if _, err := strconv.Atoi(newPort); err != nil {
+				if !host.ValidPort(newPort) {
 					return fmt.Errorf("--port needs a number")
 				}
 				final.Port = newPort

@@ -63,6 +63,11 @@ func NormalizeMac(s string) string {
 	return strings.ToLower(m)
 }
 
+// ValidPort reports whether s is an unsigned decimal port number.
+func ValidPort(s string) bool {
+	return s != "" && strings.Trim(s, "0123456789") == ""
+}
+
 // ValidIP reports whether s looks like a dotted-quad IPv4 address.
 func ValidIP(s string) bool {
 	parts := strings.Split(s, ".")
