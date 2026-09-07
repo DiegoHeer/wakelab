@@ -72,8 +72,8 @@ printf 'Host testbox box2\n' > "$HOME/.ssh/config"
 
 "$WAKE" add box2 --mac 11-22-33-44-55-66 --port 8080 | grep -q "Added 'box2'" || fail "add"
 grep -q "11:22:33:44:55:66" "$HOME/.wol_hosts" || fail "add persisted"
-"$WAKE" edit box2 --broadcast 127.0.0.1 > /dev/null || fail "edit"
-grep -q "127.0.0.1" "$HOME/.wol_hosts" || fail "edit persisted"
+"$WAKE" edit box2 --broadcast 10.99.0.255 > /dev/null || fail "edit"
+grep -q "10.99.0.255" "$HOME/.wol_hosts" || fail "edit persisted"
 
 "$WAKE" group add g2 --devices box2 > /dev/null || fail "group add"
 "$WAKE" groups | grep -q "g2" || fail "groups"
