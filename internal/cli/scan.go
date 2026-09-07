@@ -64,10 +64,13 @@ already in ~/.wol_hosts. It only lists — add a new one yourself with:
 			} else {
 				var mu sync.Mutex
 				var wg sync.WaitGroup
+				sem := make(chan struct{}, 64) // cap like the Bash xargs -P64
 				for i := 1; i <= 254; i++ {
 					wg.Add(1)
 					go func(ip string) {
 						defer wg.Done()
+						sem <- struct{}{}
+						defer func() { <-sem }()
 						if a.Prober.Ping(ip) {
 							mu.Lock()
 							live = append(live, ip)
