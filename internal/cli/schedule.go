@@ -94,7 +94,7 @@ func newScheduleAddCmd(a *App) *cobra.Command {
 				}
 				cron = fmt.Sprintf("%d %d * * *", mm, hh)
 			} else {
-				if len(strings.Fields(when)) != 5 {
+				if strings.ContainsAny(when, "\n\r") || len(strings.Fields(when)) != 5 {
 					return fmt.Errorf("time must be HH:MM or a 5-field cron expression in quotes")
 				}
 				cron = when

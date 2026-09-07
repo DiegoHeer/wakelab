@@ -133,3 +133,10 @@ func TestScheduleRmBadID(t *testing.T) {
 		t.Error("non-numeric id must error")
 	}
 }
+
+func TestScheduleAddRejectsNewlineInCron(t *testing.T) {
+	env, _ := scheduleEnv(t, "")
+	if err := env.run("schedule", "add", "server", "0 7\n* * *"); err == nil || !strings.Contains(err.Error(), "HH:MM") {
+		t.Errorf("err = %v", err)
+	}
+}
