@@ -1,0 +1,74 @@
+version: 2
+
+project_name: wakelab
+
+before:
+  hooks:
+    - go mod tidy
+    - ./scripts/completions.sh
+
+builds:
+  - id: wake
+    main: ./cmd/wake
+    binary: wake
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+    ldflags:
+      - -s -w -X github.com/DiegoHeer/wakelab/internal/cli.version={{.Version}}
+
+archives:
+  - id: default
+    formats: [tar.gz]
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    files:
+      - LICENSE
+      - README.md
+      - completions/*
+
+checksum:
+  name_template: checksums.txt
+
+changelog:
+  sort: asc
+  groups:
+    - title: Features
+      regexp: '^feat'
+      order: 0
+    - title: Fixes
+      regexp: '^fix'
+      order: 1
+    - title: Other
+      order: 999
+  filters:
+    exclude:
+      - '^chore'
+      - '^ci'
+      - '^style'
+      - '^test'
+
+brews:
+  - name: wakelab
+    repository:
+      owner: DiegoHeer
+      name: homebrew-tap
+      branch: main
+    directory: Formula
+    homepage: https://github.com/DiegoHeer/wakelab
+    description: "Wake and sleep your whole homelab from the CLI"
+    license: GPL-3.0-or-later
+    install: |
+      bin.install "wake"
+      bash_completion.install "completions/wake.bash" => "wake"
+      zsh_completion.install "completions/_wake"
+      fish_completion.install "completions/wake.fish"
+    test: |
+      assert_match "wake version", shell_output("#{bin}/wake --version")
+    commit_author:
+      name: goreleaser
+      email: diego.heer@odido.nl
