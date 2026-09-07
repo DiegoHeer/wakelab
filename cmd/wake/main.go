@@ -1,3 +1,4 @@
+// Command wake is the wakelab CLI entrypoint.
 package main
 
 import (
