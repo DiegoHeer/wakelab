@@ -3,9 +3,11 @@ package cli
 import (
 	"context"
 	"io"
+	"net"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"sync"
 	"time"
 
@@ -32,6 +34,7 @@ type App struct {
 	Sleep      func(time.Duration)
 	LookPath   func(string) (string, error)
 	Executable func() (string, error)
+	ReverseDNS func(ip string) string
 }
 
 // NewApp wires the real world.
@@ -59,7 +62,24 @@ func NewApp() *App {
 		Sleep:      time.Sleep,
 		LookPath:   exec.LookPath,
 		Executable: os.Executable,
+		ReverseDNS: reverseDNS,
 	}
+}
+
+// reverseDNS returns an IP's short reverse-DNS name ("" when unresolvable),
+// bounded to ~1s (parity with the Bash `timeout 1 getent hosts`).
+func reverseDNS(ip string) string {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+	names, err := net.DefaultResolver.LookupAddr(ctx, ip)
+	if err != nil || len(names) == 0 {
+		return ""
+	}
+	name := strings.TrimSuffix(names[0], ".")
+	if i := strings.Index(name, "."); i > 0 {
+		name = name[:i]
+	}
+	return name
 }
 
 // loadHosts returns the hosts file text and its parsed hosts.

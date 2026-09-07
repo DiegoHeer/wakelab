@@ -61,6 +61,8 @@ Hosts live in ssh-config-style blocks in ~/.wol_hosts; groups in ~/.wol_groups.`
 	root.AddCommand(newRestartCmd(a))
 	root.AddCommand(newSuspendCmd(a))
 	root.AddCommand(newScheduleCmd(a))
+	root.AddCommand(newScanCmd(a))
+	root.AddCommand(newDoctorCmd(a))
 	return root
 }
 
