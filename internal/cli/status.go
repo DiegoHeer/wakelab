@@ -32,10 +32,8 @@ func newStatusCmd(a *App) *cobra.Command {
   wake status ... --port N    'online' = TCP port N is open (e.g. 22 for SSH)`,
 		Args: cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			if checkPort != "" {
-				if _, err := strconv.Atoi(checkPort); err != nil {
-					return fmt.Errorf("--port needs a number")
-				}
+			if checkPort != "" && !host.ValidPort(checkPort) {
+				return fmt.Errorf("--port needs a number")
 			}
 			ctx := cmd.Context()
 			_, hosts, err := a.loadHosts()

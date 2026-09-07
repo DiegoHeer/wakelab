@@ -84,3 +84,18 @@ func TestReservedIncludesCobraBuiltins(t *testing.T) {
 		}
 	}
 }
+
+func TestValidPort(t *testing.T) {
+	valid := []string{"22", "8080", "1"}
+	invalid := []string{"", "+22", "-1", "2 2", "port", "22.5"}
+	for _, p := range valid {
+		if !ValidPort(p) {
+			t.Errorf("ValidPort(%q) = false, want true", p)
+		}
+	}
+	for _, p := range invalid {
+		if ValidPort(p) {
+			t.Errorf("ValidPort(%q) = true, want false", p)
+		}
+	}
+}

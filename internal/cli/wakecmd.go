@@ -3,7 +3,6 @@ package cli
 import (
 	"context"
 	"fmt"
-	"strconv"
 	"strings"
 	"time"
 
@@ -29,10 +28,8 @@ type wakeOptions struct {
 
 // runWake is `wake <target>`: send WOL to a host, group, 'all', or a raw MAC.
 func (a *App) runWake(ctx context.Context, target string, opts wakeOptions) error {
-	if opts.port != "" {
-		if _, err := strconv.Atoi(opts.port); err != nil {
-			return fmt.Errorf("--port needs a number")
-		}
+	if opts.port != "" && !host.ValidPort(opts.port) {
+		return fmt.Errorf("--port needs a number")
 	}
 
 	// A raw MAC wakes directly — this is what relays run: wake <mac> --broadcast <ip>.
