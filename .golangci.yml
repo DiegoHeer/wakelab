@@ -1,0 +1,19 @@
+version: "2"
+
+run:
+  timeout: 3m
+
+linters:
+  # errcheck, govet, ineffassign, staticcheck, unused are enabled by default.
+  enable:
+    - misspell
+    - revive
+  exclusions:
+    rules:
+      - path: _test\.go
+        linters:
+          - errcheck
+
+formatters:
+  enable:
+    - gofmt
