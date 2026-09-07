@@ -34,6 +34,16 @@ jobs:
       - name: Test
         run: make test
 
+  cover:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: stable
+      - name: Coverage floor
+        run: make cover-check
+
   build:
     runs-on: ubuntu-latest
     steps:
@@ -43,3 +53,23 @@ jobs:
           go-version: stable
       - name: Build
         run: make build
+
+  # The built binary's integration checks run inside each distro container:
+  # static Go binary + shimmed ssh/crontab/ping/ip, so what this proves is
+  # that the shell-outs behave across distros.
+  integration:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: stable
+      - name: Build static binary
+        run: CGO_ENABLED=0 make build
+      - name: Run integration checks in distro containers
+        run: |
+          set -eu
+          for img in debian:stable ubuntu:latest fedora:latest alpine:latest archlinux:latest; do
+            echo "=== $img ==="
+            docker run --rm -v "$PWD:/src" -w /src "$img" sh tests/integration.sh ./bin/wake
+          done
