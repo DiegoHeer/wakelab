@@ -51,6 +51,12 @@ Hosts live in ssh-config-style blocks in ~/.wol_hosts; groups in ~/.wol_groups.`
 
 	root.AddCommand(newLsCmd(a))
 	root.AddCommand(newStatusCmd(a))
+	root.AddCommand(newAddCmd(a))
+	root.AddCommand(newEditCmd(a))
+	root.AddCommand(newRmCmd(a))
+	root.AddCommand(newImportSSHCmd(a))
+	root.AddCommand(newGroupCmd(a))
+	root.AddCommand(newGroupsCmd(a))
 	return root
 }
 
