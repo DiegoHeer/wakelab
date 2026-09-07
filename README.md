@@ -40,7 +40,8 @@ wake desktop                  # wake one host
 wake minirack --wait          # wake a group, poll until every host is up
 wake all                      # wake everything
 wake status                   # online/offline table
-wake status desktop --json    # machine-readable status (exit 1 when offline)
+wake status desktop           # one line; exit 1 when offline
+wake status desktop --json    # machine-readable status
 wake ls                       # quick host list
 wake add nas --ip 192.168.1.50
 wake edit nas --via proxmox
