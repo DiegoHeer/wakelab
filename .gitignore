@@ -11,3 +11,5 @@ coverage.txt
 
 # Local planning docs (private)
 /docs/
+
+/completions/
