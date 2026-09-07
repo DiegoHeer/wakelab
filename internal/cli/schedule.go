@@ -53,6 +53,7 @@ func newScheduleCmd(a *App) *cobra.Command {
 		Long:  scheduleHelp,
 		PersistentPreRunE: func(_ *cobra.Command, _ []string) error {
 			if _, err := a.LookPath("crontab"); err != nil {
+				//nolint:revive,staticcheck // parity with the Bash tool's exact message
 				return fmt.Errorf("crontab not found. Install cron (Fedora: sudo dnf install cronie && sudo systemctl enable --now crond).")
 			}
 			return nil

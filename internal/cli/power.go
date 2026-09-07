@@ -49,6 +49,7 @@ unless you pass -y. Uses sudo automatically when your SSH user is not root.`,
 				}
 			}
 			if len(missing) > 0 {
+				//nolint:revive,staticcheck // parity with the Bash tool's exact message
 				return fmt.Errorf("not in ~/.ssh/config: %s — %s needs SSH. Add them to ~/.ssh/config first.",
 					strings.Join(missing, " "), pretty)
 			}
