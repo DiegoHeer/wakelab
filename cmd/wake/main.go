@@ -2,15 +2,14 @@
 package main
 
 import (
-	"fmt"
 	"os"
 
 	"github.com/DiegoHeer/wakelab/internal/cli"
 )
 
 func main() {
+	// Execute prints its own errors; main only sets the exit code.
 	if err := cli.Execute(); err != nil {
-		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
 }

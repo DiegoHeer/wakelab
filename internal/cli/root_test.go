@@ -3,10 +3,11 @@ package cli
 import "testing"
 
 func TestNewRootCmd(t *testing.T) {
-	cmd := NewRootCmd()
+	env := newTestEnv(t, "", "")
+	cmd := NewRootCmd(env.app)
 
-	if cmd.Use != "wake" {
-		t.Errorf("Use = %q, want %q", cmd.Use, "wake")
+	if cmd.Use != "wake [target]" {
+		t.Errorf("Use = %q, want %q", cmd.Use, "wake [target]")
 	}
 	if cmd.Short == "" {
 		t.Error("Short must not be empty")
@@ -17,9 +18,16 @@ func TestNewRootCmd(t *testing.T) {
 }
 
 func TestRootCmdHelpDoesNotError(t *testing.T) {
-	cmd := NewRootCmd()
-	cmd.SetArgs([]string{"--help"})
-	if err := cmd.Execute(); err != nil {
+	env := newTestEnv(t, "", "")
+	if err := env.run("--help"); err != nil {
 		t.Errorf("--help returned error: %v", err)
 	}
+}
+
+func TestRootCmdNoArgsShowsHelp(t *testing.T) {
+	env := newTestEnv(t, "", "")
+	if err := env.run(); err != nil {
+		t.Errorf("bare wake returned error: %v", err)
+	}
+	mustContain(t, env.out.String(), "Usage:")
 }

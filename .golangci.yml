@@ -8,6 +8,14 @@ linters:
   enable:
     - misspell
     - revive
+  settings:
+    errcheck:
+      # CLI output to injected writers: checking every print would drown the
+      # command code in noise for errors we cannot act on.
+      exclude-functions:
+        - fmt.Fprintf
+        - fmt.Fprintln
+        - fmt.Fprint
   exclusions:
     rules:
       - path: _test\.go
