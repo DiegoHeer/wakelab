@@ -17,16 +17,20 @@ func ParseHosts(text string) []host.Host {
 	cur := -1
 	for _, line := range strings.Split(text, "\n") {
 		fields := strings.Fields(line)
-		if len(fields) < 2 {
+		if len(fields) == 0 {
 			continue
 		}
 		key := strings.ToLower(fields[0])
 		if key == "host" {
+			if len(fields) < 2 {
+				cur = -1 // a bare Host line still ends the previous block
+				continue
+			}
 			hosts = append(hosts, host.Host{Name: fields[1]})
 			cur = len(hosts) - 1
 			continue
 		}
-		if cur < 0 {
+		if cur < 0 || len(fields) < 2 {
 			continue
 		}
 		h := &hosts[cur]
@@ -66,6 +70,9 @@ func FindHost(text, name string) (host.Host, bool) {
 func AppendHost(text string, h host.Host) string {
 	var b strings.Builder
 	b.WriteString(text)
+	if text != "" && !strings.HasSuffix(text, "\n") {
+		b.WriteString("\n")
+	}
 	fmt.Fprintf(&b, "Host %s\n", h.Name)
 	fmt.Fprintf(&b, "    %-11s%s\n", "Mac", h.Mac)
 	if h.Broadcast != "" {
@@ -91,8 +98,8 @@ func RemoveHost(text, name string) string {
 	// so Join restores the original trailing newline.
 	for _, line := range lines {
 		fields := strings.Fields(line)
-		if len(fields) >= 2 && strings.EqualFold(fields[0], "host") {
-			inBlock = fields[1] == name
+		if len(fields) > 0 && strings.EqualFold(fields[0], "host") {
+			inBlock = len(fields) >= 2 && fields[1] == name
 		}
 		// Comment lines are never part of a block: removing a host must not
 		// eat the user's comments (a small improvement over the Bash tool).
@@ -101,5 +108,9 @@ func RemoveHost(text, name string) string {
 			out = append(out, line)
 		}
 	}
-	return strings.Join(out, "\n")
+	joined := strings.Join(out, "\n")
+	if joined != "" && !strings.HasSuffix(joined, "\n") {
+		joined += "\n"
+	}
+	return joined
 }

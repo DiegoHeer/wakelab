@@ -33,7 +33,12 @@ func Load(path string) (string, error) {
 	return string(data), nil
 }
 
-// Save writes a config file.
+// Save writes a config file atomically (temp file + rename), so a crash never
+// leaves the user's config truncated.
 func Save(path, text string) error {
-	return os.WriteFile(path, []byte(text), 0o644)
+	tmp := path + ".tmp"
+	if err := os.WriteFile(tmp, []byte(text), 0o644); err != nil {
+		return err
+	}
+	return os.Rename(tmp, path)
 }

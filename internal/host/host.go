@@ -44,6 +44,8 @@ var reserved = map[string]bool{
 	"poweroff": true, "restart": true, "suspend": true, "group": true,
 	"groups": true, "edit": true, "doctor": true, "schedule": true,
 	"install-wol": true, "scan": true, "all": true, "help": true,
+	// Cobra auto-registers these subcommands, so they cannot name hosts either.
+	"completion": true, "version": true,
 }
 
 // Reserved reports whether name is a command word and cannot name a host or group.

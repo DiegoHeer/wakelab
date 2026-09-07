@@ -76,3 +76,11 @@ func TestReserved(t *testing.T) {
 		}
 	}
 }
+
+func TestReservedIncludesCobraBuiltins(t *testing.T) {
+	for _, name := range []string{"completion", "version"} {
+		if !Reserved(name) {
+			t.Errorf("Reserved(%q) = false, want true", name)
+		}
+	}
+}

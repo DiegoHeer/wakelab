@@ -100,3 +100,33 @@ func TestRemoveHostKeepsRest(t *testing.T) {
 		t.Error("comment line lost by RemoveHost")
 	}
 }
+
+func TestAppendHostNoTrailingNewline(t *testing.T) {
+	out := AppendHost("Host a\n    Mac        11:11:11:11:11:11", host.Host{Name: "b", Mac: "22:22:22:22:22:22"})
+	hosts := ParseHosts(out)
+	if len(hosts) != 2 || hosts[0].Name != "a" || hosts[1].Name != "b" {
+		t.Errorf("hosts = %+v, want a and b intact", hosts)
+	}
+}
+
+func TestRemoveHostLastBlockKeepsTrailingNewline(t *testing.T) {
+	out := RemoveHost(sampleHosts, "pi")
+	if out != "" && !strings.HasSuffix(out, "\n") {
+		t.Errorf("RemoveHost result must end with a newline, got %q", out)
+	}
+	if _, ok := FindHost(out, "server"); !ok {
+		t.Error("server lost")
+	}
+}
+
+func TestBareHostLineTerminatesBlock(t *testing.T) {
+	text := "Host a\n    Mac 11:11:11:11:11:11\nHost\n    Via relay\n"
+	hosts := ParseHosts(text)
+	if len(hosts) != 1 || hosts[0].Via != "" {
+		t.Errorf("hosts = %+v; a bare Host line must end the block (Via must not bleed into a)", hosts)
+	}
+	out := RemoveHost(text, "a")
+	if !strings.Contains(out, "Via relay") {
+		t.Errorf("RemoveHost must stop at the bare Host line, got %q", out)
+	}
+}
