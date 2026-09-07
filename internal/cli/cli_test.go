@@ -36,6 +36,10 @@ func (f *fakeRunner) RunTTY(ctx context.Context, name string, args ...string) er
 	return err
 }
 
+func (f *fakeRunner) RunInput(ctx context.Context, _ string, name string, args ...string) (string, string, error) {
+	return f.Run(ctx, name, args...)
+}
+
 // sshGRunner answers `ssh -G <host>` with a fixed hostname/user per host and
 // records all other calls.
 func sshGRunner(ips map[string]string, users map[string]string) *fakeRunner {
@@ -98,11 +102,13 @@ func newTestEnv(t *testing.T, hostsText, groupsText string) *testEnv {
 			env.sent = append(env.sent, mac+"@"+bcast)
 			return nil
 		},
-		Out:      env.out,
-		Err:      env.errb,
-		IsTTY:    false,
-		Sleep:    func(time.Duration) {},
-		LookPath: func(string) (string, error) { return "", errors.New("not found") },
+		Stdin:      strings.NewReader(""),
+		Out:        env.out,
+		Err:        env.errb,
+		IsTTY:      false,
+		Sleep:      func(time.Duration) {},
+		LookPath:   func(string) (string, error) { return "", errors.New("not found") },
+		Executable: func() (string, error) { return "/test/wake", nil },
 	}
 	return env
 }

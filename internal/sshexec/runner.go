@@ -17,6 +17,9 @@ type Runner interface {
 	// RunTTY executes the command wired to the user's terminal (for
 	// interactive ssh -t sessions).
 	RunTTY(ctx context.Context, name string, args ...string) error
+	// RunInput executes the command with stdin fed from a string (for
+	// `crontab -`).
+	RunInput(ctx context.Context, stdin, name string, args ...string) (stdout, stderr string, err error)
 }
 
 // ExecRunner is the real Runner backed by os/exec.
@@ -39,6 +42,17 @@ func (ExecRunner) RunTTY(ctx context.Context, name string, args ...string) error
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	return cmd.Run()
+}
+
+// RunInput implements Runner.
+func (ExecRunner) RunInput(ctx context.Context, stdin, name string, args ...string) (string, string, error) {
+	cmd := exec.CommandContext(ctx, name, args...)
+	cmd.Stdin = strings.NewReader(stdin)
+	var out, errb bytes.Buffer
+	cmd.Stdout = &out
+	cmd.Stderr = &errb
+	err := cmd.Run()
+	return out.String(), errb.String(), err
 }
 
 // SSHOption returns one key's value from `ssh -G <host>` output ("" if the
