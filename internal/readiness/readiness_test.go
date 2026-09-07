@@ -44,3 +44,7 @@ func TestPing(t *testing.T) {
 		t.Error("Ping = true when ping fails")
 	}
 }
+
+func (p pingRunner) RunInput(_ context.Context, _, _ string, _ ...string) (string, string, error) {
+	return "", "", nil
+}

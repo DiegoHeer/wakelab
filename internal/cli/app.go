@@ -23,13 +23,15 @@ type App struct {
 	GroupsPath    string
 	SSHConfigPath string
 
-	Runner   sshexec.Runner
-	Prober   readiness.Prober
-	SendWOL  func(mac, bcast string) error
-	Out, Err io.Writer
-	IsTTY    bool
-	Sleep    func(time.Duration)
-	LookPath func(string) (string, error)
+	Runner     sshexec.Runner
+	Prober     readiness.Prober
+	SendWOL    func(mac, bcast string) error
+	Stdin      io.Reader
+	Out, Err   io.Writer
+	IsTTY      bool
+	Sleep      func(time.Duration)
+	LookPath   func(string) (string, error)
+	Executable func() (string, error)
 }
 
 // NewApp wires the real world.
@@ -50,11 +52,13 @@ func NewApp() *App {
 			}
 			return wol.Send(pkt, bcast, wol.DefaultPort)
 		},
-		Out:      os.Stdout,
-		Err:      os.Stderr,
-		IsTTY:    fi != nil && fi.Mode()&os.ModeCharDevice != 0,
-		Sleep:    time.Sleep,
-		LookPath: exec.LookPath,
+		Stdin:      os.Stdin,
+		Out:        os.Stdout,
+		Err:        os.Stderr,
+		IsTTY:      fi != nil && fi.Mode()&os.ModeCharDevice != 0,
+		Sleep:      time.Sleep,
+		LookPath:   exec.LookPath,
+		Executable: os.Executable,
 	}
 }
 

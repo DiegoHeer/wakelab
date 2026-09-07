@@ -31,6 +31,9 @@ func (f fakeRunner) Run(_ context.Context, _ string, _ ...string) (string, strin
 	return f.out, "", nil
 }
 func (f fakeRunner) RunTTY(_ context.Context, _ string, _ ...string) error { return nil }
+func (f fakeRunner) RunInput(_ context.Context, _, _ string, _ ...string) (string, string, error) {
+	return "", "", nil
+}
 
 func TestSSHOption(t *testing.T) {
 	r := fakeRunner{out: "user root\nhostname 192.168.1.10\nport 22\n"}
@@ -42,5 +45,13 @@ func TestSSHOption(t *testing.T) {
 	}
 	if got := SSHOption(context.Background(), r, "server", "nope"); got != "" {
 		t.Errorf("missing key = %q, want empty", got)
+	}
+}
+
+func TestExecRunnerRunInput(t *testing.T) {
+	var r ExecRunner
+	stdout, _, err := r.RunInput(context.Background(), "hello\n", "cat")
+	if err != nil || stdout != "hello\n" {
+		t.Errorf("RunInput = %q, %v", stdout, err)
 	}
 }
