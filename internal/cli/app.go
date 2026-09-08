@@ -35,6 +35,7 @@ type App struct {
 	LookPath   func(string) (string, error)
 	Executable func() (string, error)
 	ReverseDNS func(ip string) string
+	Getenv     func(key string) string
 }
 
 // NewApp wires the real world.
@@ -63,6 +64,7 @@ func NewApp() *App {
 		LookPath:   exec.LookPath,
 		Executable: os.Executable,
 		ReverseDNS: reverseDNS,
+		Getenv:     os.Getenv,
 	}
 }
 

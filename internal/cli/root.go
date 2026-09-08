@@ -43,9 +43,9 @@ Hosts live in ssh-config-style blocks in ~/.wol_hosts; groups in ~/.wol_groups.`
 			return a.runWake(cmd.Context(), args[0], opts)
 		},
 	}
-	// Tab-completion scripts are installed by Homebrew / the release archives;
-	// keep the generator working but out of --help.
-	root.CompletionOptions.HiddenDefaultCmd = true
+	// Cobra's default completion command is replaced by our own (hidden) one,
+	// which adds `completion install` next to the generators.
+	root.CompletionOptions.DisableDefaultCmd = true
 	root.Flags().BoolVar(&opts.wait, "wait", false, "poll until the target is up")
 	root.Flags().IntVar(&opts.timeout, "timeout", 60, "--wait timeout in seconds")
 	root.Flags().StringVar(&opts.port, "port", "", "--wait probes this TCP port on every host")
@@ -66,6 +66,7 @@ Hosts live in ssh-config-style blocks in ~/.wol_hosts; groups in ~/.wol_groups.`
 	root.AddCommand(newScheduleCmd(a))
 	root.AddCommand(newScanCmd(a))
 	root.AddCommand(newDoctorCmd(a))
+	root.AddCommand(newCompletionCmd(a))
 	return root
 }
 
