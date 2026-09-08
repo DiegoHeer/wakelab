@@ -109,6 +109,12 @@ func newTestEnv(t *testing.T, hostsText, groupsText string) *testEnv {
 		Sleep:      func(time.Duration) {},
 		LookPath:   func(string) (string, error) { return "", errors.New("not found") },
 		Executable: func() (string, error) { return "/test/wake", nil },
+		Getenv: func(key string) string {
+			if key == "HOME" {
+				return dir
+			}
+			return ""
+		},
 	}
 	return env
 }
