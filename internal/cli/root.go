@@ -43,6 +43,9 @@ Hosts live in ssh-config-style blocks in ~/.wol_hosts; groups in ~/.wol_groups.`
 			return a.runWake(cmd.Context(), args[0], opts)
 		},
 	}
+	// Tab-completion scripts are installed by Homebrew / the release archives;
+	// keep the generator working but out of --help.
+	root.CompletionOptions.HiddenDefaultCmd = true
 	root.Flags().BoolVar(&opts.wait, "wait", false, "poll until the target is up")
 	root.Flags().IntVar(&opts.timeout, "timeout", 60, "--wait timeout in seconds")
 	root.Flags().StringVar(&opts.port, "port", "", "--wait probes this TCP port on every host")

@@ -1,6 +1,9 @@
 package cli
 
-import "testing"
+import (
+	"strings"
+	"testing"
+)
 
 func TestNewRootCmd(t *testing.T) {
 	env := newTestEnv(t, "", "")
@@ -22,6 +25,24 @@ func TestRootCmdHelpDoesNotError(t *testing.T) {
 	if err := env.run("--help"); err != nil {
 		t.Errorf("--help returned error: %v", err)
 	}
+}
+
+func TestRootCmdHelpHidesCompletion(t *testing.T) {
+	env := newTestEnv(t, "", "")
+	if err := env.run("--help"); err != nil {
+		t.Fatalf("--help returned error: %v", err)
+	}
+	if out := env.out.String(); strings.Contains(out, "completion") {
+		t.Errorf("--help must not list the completion command, got:\n%s", out)
+	}
+}
+
+func TestCompletionCmdStillWorks(t *testing.T) {
+	env := newTestEnv(t, "", "")
+	if err := env.run("completion", "bash"); err != nil {
+		t.Fatalf("completion bash returned error: %v", err)
+	}
+	mustContain(t, env.out.String(), "bash completion")
 }
 
 func TestRootCmdNoArgsShowsHelp(t *testing.T) {
