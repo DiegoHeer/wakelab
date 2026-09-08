@@ -54,8 +54,19 @@ wake scan                     # discover devices on your LAN
 wake doctor                   # check the config for problems
 ```
 
-Every command has `--help`. Homebrew installs shell completions automatically;
-other installs can generate them with `wake completion bash|zsh|fish`.
+Every command has `--help`.
+
+### Tab completion
+
+Run once, then open a new shell:
+
+```
+wake completion install
+```
+
+It detects your shell from `$SHELL` (or pass `bash`, `zsh`, or `fish`) and
+writes the completion script where your shell picks it up automatically.
+Raw scripts are also available via `wake completion bash|zsh|fish`.
 
 ## Build from source
 
