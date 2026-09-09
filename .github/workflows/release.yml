@@ -24,6 +24,8 @@ jobs:
           version: "~> v2"
           args: release --clean
         env:
-          # Needs a PAT with write access to DiegoHeer/homebrew-tap so the
-          # formula can be pushed there (GITHUB_TOKEN is repo-scoped).
-          GITHUB_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN || secrets.GITHUB_TOKEN }}
+          # The release itself uses the repo-scoped built-in token; only the
+          # formula push to DiegoHeer/homebrew-tap uses the tap-scoped PAT
+          # (wired to brews.repository.token in .goreleaser.yaml).
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          HOMEBREW_TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}

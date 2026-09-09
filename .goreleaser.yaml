@@ -58,6 +58,7 @@ brews:
       owner: DiegoHeer
       name: homebrew-tap
       branch: main
+      token: "{{ .Env.HOMEBREW_TAP_TOKEN }}"
     directory: Formula
     homepage: https://github.com/DiegoHeer/wakelab
     description: "Wake and sleep your whole homelab from the CLI"
