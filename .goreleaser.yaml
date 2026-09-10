@@ -52,27 +52,34 @@ changelog:
       - '^style'
       - '^test'
 
-brews:
+# Casks work on Linuxbrew too since Homebrew 4.5 (plain `binary` artifacts);
+# the old formula lives on in the tap's git history.
+homebrew_casks:
   - name: wakelab
     repository:
       owner: DiegoHeer
       name: homebrew-tap
       branch: main
       token: "{{ .Env.HOMEBREW_TAP_TOKEN }}"
-    directory: Formula
+    directory: Casks
     homepage: https://github.com/DiegoHeer/wakelab
     description: "Wake and sleep your whole homelab from the CLI"
-    license: GPL-3.0-or-later
-    install: |
-      bin.install "wake"
-      bash_completion.install "completions/wake.bash" => "wake"
-      zsh_completion.install "completions/_wake"
-      fish_completion.install "completions/wake.fish"
-    test: |
-      assert_match "wake version", shell_output("#{bin}/wake --version")
+    binaries:
+      - wake
+    completions:
+      bash: completions/wake.bash
+      zsh: completions/_wake
+      fish: completions/wake.fish
     caveats: |
       Run this once to enable tab completion in your shell:
         wake completion install
     commit_author:
       name: goreleaser
       email: diego.heer@odido.nl
+    hooks:
+      post:
+        # The binaries are not Apple-signed; strip the quarantine bit on macOS.
+        install: |
+          if OS.mac?
+            system_command "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "#{staged_path}/wake"]
+          end
