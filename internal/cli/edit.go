@@ -30,7 +30,8 @@ func newEditCmd(a *App) *cobra.Command {
   (combine any of these in one command)
 
 Renaming also updates the host inside any groups.`,
-		Args: cobra.ExactArgs(1),
+		Args:              cobra.ExactArgs(1),
+		ValidArgsFunction: a.completeHosts,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			name := args[0]
 			hostsText, hosts, err := a.loadHosts()
@@ -107,6 +108,7 @@ Renaming also updates the host inside any groups.`,
 	cmd.Flags().StringVar(&newBcast, "broadcast", "", "new wake broadcast address")
 	cmd.Flags().StringVar(&newPort, "port", "", "new readiness TCP port")
 	cmd.Flags().StringVar(&newVia, "via", "", "new SSH relay ('' clears it)")
+	_ = cmd.RegisterFlagCompletionFunc("via", a.completeHostsAnywhere)
 	return cmd
 }
 

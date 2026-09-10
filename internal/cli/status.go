@@ -30,7 +30,8 @@ func newStatusCmd(a *App) *cobra.Command {
   wake status ... --watch     refresh the table until you press Ctrl-C
   wake status ... --interval N   seconds between refreshes (default 2)
   wake status ... --port N    'online' = TCP port N is open (e.g. 22 for SSH)`,
-		Args: cobra.MaximumNArgs(1),
+		Args:              cobra.MaximumNArgs(1),
+		ValidArgsFunction: a.completeTargets,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if checkPort != "" && !host.ValidPort(checkPort) {
 				return fmt.Errorf("--port needs a number")
