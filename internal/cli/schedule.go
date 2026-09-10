@@ -67,10 +67,11 @@ var hhmmRe = regexp.MustCompile(`^([0-9]{1,2}):([0-9]{2})$`)
 
 func newScheduleAddCmd(a *App) *cobra.Command {
 	return &cobra.Command{
-		Use:   "add <target> <HH:MM | \"cron expr\">",
-		Short: "schedule a daily or cron-timed wake",
-		Long:  scheduleHelp,
-		Args:  cobra.ExactArgs(2),
+		Use:               "add <target> <HH:MM | \"cron expr\">",
+		Short:             "schedule a daily or cron-timed wake",
+		Long:              scheduleHelp,
+		Args:              cobra.ExactArgs(2),
+		ValidArgsFunction: a.completeTargets,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
 			target, when := args[0], args[1]

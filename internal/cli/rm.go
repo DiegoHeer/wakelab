@@ -9,10 +9,11 @@ import (
 
 func newRmCmd(a *App) *cobra.Command {
 	return &cobra.Command{
-		Use:   "rm <name>",
-		Short: "remove a host",
-		Long:  "wake rm — remove a host from ~/.wol_hosts",
-		Args:  cobra.ExactArgs(1),
+		Use:               "rm <name>",
+		Short:             "remove a host",
+		Long:              "wake rm — remove a host from ~/.wol_hosts",
+		Args:              cobra.ExactArgs(1),
+		ValidArgsFunction: a.completeHosts,
 		RunE: func(_ *cobra.Command, args []string) error {
 			name := args[0]
 			hostsText, hosts, err := a.loadHosts()

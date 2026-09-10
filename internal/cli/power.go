@@ -23,7 +23,8 @@ func newPowerCmd(a *App, use, remoteCmd, pretty, extra string) *cobra.Command {
 Every targeted host must be in ~/.ssh/config. Asks for confirmation
 unless you pass -y. Uses sudo automatically when your SSH user is not root.`,
 			use, strings.ToLower(pretty), use, extra),
-		Args: cobra.ExactArgs(1),
+		Args:              cobra.ExactArgs(1),
+		ValidArgsFunction: a.completeTargets,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
 			target := args[0]

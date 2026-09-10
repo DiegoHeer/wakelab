@@ -66,6 +66,7 @@ func newGroupAddCmd(a *App) *cobra.Command {
 		Short:              "create a group",
 		Long:               groupHelp,
 		DisableFlagParsing: true,
+		ValidArgsFunction:  a.completeNewNameThenHosts,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if wantsHelp(args) {
 				return cmd.Help()
@@ -127,6 +128,7 @@ func newGroupEditCmd(a *App) *cobra.Command {
 		Short:              "change a group",
 		Long:               groupHelp,
 		DisableFlagParsing: true,
+		ValidArgsFunction:  a.completeGroupThenHosts,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if wantsHelp(args) {
 				return cmd.Help()
@@ -231,10 +233,11 @@ func newGroupEditCmd(a *App) *cobra.Command {
 
 func newGroupRmCmd(a *App) *cobra.Command {
 	return &cobra.Command{
-		Use:   "rm <name>",
-		Short: "delete a group",
-		Long:  groupHelp,
-		Args:  cobra.ExactArgs(1),
+		Use:               "rm <name>",
+		Short:             "delete a group",
+		Long:              groupHelp,
+		Args:              cobra.ExactArgs(1),
+		ValidArgsFunction: a.completeGroups,
 		RunE: func(_ *cobra.Command, args []string) error {
 			name := args[0]
 			groupsText, groups, err := a.loadGroups()

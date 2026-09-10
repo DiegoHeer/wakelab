@@ -143,5 +143,6 @@ Optional extras (any source above):
 	cmd.Flags().StringVar(&bcast, "broadcast", "", "wake broadcast address")
 	cmd.Flags().StringVar(&port, "port", "", "readiness TCP port")
 	cmd.Flags().StringVar(&via, "via", "", "send the wake from this SSH relay")
+	_ = cmd.RegisterFlagCompletionFunc("via", a.completeHostsAnywhere)
 	return cmd
 }
