@@ -52,10 +52,19 @@ func (a *App) completeHosts(_ *cobra.Command, args []string, _ string) ([]string
 	return a.hostNames(), cobra.ShellCompDirectiveNoFileComp
 }
 
-// completeHostsAnywhere offers host names regardless of position (flag
-// values, and device lists of the flag-parsing-disabled group commands).
-func (a *App) completeHostsAnywhere(_ *cobra.Command, _ []string, _ string) ([]string, cobra.ShellCompDirective) {
-	return a.hostNames(), cobra.ShellCompDirectiveNoFileComp
+// completeRelays offers relay targets for --via: known hosts plus concrete
+// ~/.ssh/config Host entries (a relay only needs to be reachable over SSH, so
+// it may live only in ~/.ssh/config), deduped.
+func (a *App) completeRelays(_ *cobra.Command, _ []string, _ string) ([]string, cobra.ShellCompDirective) {
+	seen := map[string]bool{}
+	var names []string
+	for _, n := range append(a.hostNames(), a.sshConfigHosts()...) {
+		if !seen[n] {
+			seen[n] = true
+			names = append(names, n)
+		}
+	}
+	return names, cobra.ShellCompDirectiveNoFileComp
 }
 
 // completeGroups offers group names for a first argument.

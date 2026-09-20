@@ -33,6 +33,16 @@ func checkNewName(a *App, name string, hosts []host.Host, groups []host.Group) e
 	return nil
 }
 
+// discoverMac reads the target's MAC: through the relay when one is set (so a
+// host on a remote subnet can be added without knowing its MAC), otherwise
+// from this machine.
+func (a *App) discoverMac(ctx context.Context, relay, ip string) string {
+	if relay != "" {
+		return a.macFromIPVia(ctx, relay, ip)
+	}
+	return a.macFromIP(ctx, ip)
+}
+
 // macFromIP pings an IP (to fill the neighbor table), then reads its MAC from
 // `ip neigh show` ("" when not found) — parity with the Bash mac_from_ip.
 func (a *App) macFromIP(ctx context.Context, ip string) string {
@@ -41,6 +51,26 @@ func (a *App) macFromIP(ctx context.Context, ip string) string {
 	if err != nil {
 		return ""
 	}
+	return parseNeighMac(stdout)
+}
+
+// macFromIPVia asks the relay (over SSH) to ping the IP and read its MAC, so
+// the target only needs to be reachable from the relay, not from here.
+func (a *App) macFromIPVia(ctx context.Context, relay, ip string) string {
+	if !host.ValidIP(ip) {
+		return ""
+	}
+	script := fmt.Sprintf("ping -c1 -W1 %s >/dev/null 2>&1; ip neigh show %s", ip, ip)
+	stdout, _, err := a.Runner.Run(ctx, "ssh", relay, script)
+	if err != nil {
+		return ""
+	}
+	return parseNeighMac(stdout)
+}
+
+// parseNeighMac pulls the lladdr MAC out of `ip neigh show` output ("" when
+// absent).
+func parseNeighMac(stdout string) string {
 	fields := strings.Fields(stdout)
 	for i, f := range fields {
 		if f == "lladdr" && i+1 < len(fields) {
@@ -71,9 +101,14 @@ func newAddCmd(a *App) *cobra.Command {
 Optional extras (any source above):
   --broadcast <IP>   send the wake packet to this subnet broadcast
   --port <N>         readiness port for 'status --port' and 'wake --wait'
-  --via <relay>      send the wake from this SSH host (a wired relay)
+  --via <relay>      send the wake from this SSH relay on the target's LAN
 
---ssh and --ip need the machine to be online right now.`,
+--ssh and --ip need the machine to be online right now.
+
+Remote wake: a relay is any always-on SSH host on the target's LAN (reachable
+directly, or over Tailscale/VPN). With --via, the --ssh and --ip MAC lookup also
+runs on the relay, so you can add a host on a remote subnet without knowing its
+MAC in advance.`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
@@ -99,12 +134,12 @@ Optional extras (any source above):
 				if ip == "" {
 					return fmt.Errorf("no IP for '%s' in SSH config", name)
 				}
-				mac = a.macFromIP(ctx, ip)
+				mac = a.discoverMac(ctx, via, ip)
 				if mac == "" {
 					return fmt.Errorf("could not read MAC for '%s' (%s). Is it online?", name, ip)
 				}
 			case fromIP != "":
-				mac = a.macFromIP(ctx, fromIP)
+				mac = a.discoverMac(ctx, via, fromIP)
 				if mac == "" {
 					return fmt.Errorf("could not read MAC from %s. Is it online?", fromIP)
 				}
@@ -142,7 +177,7 @@ Optional extras (any source above):
 	cmd.Flags().StringVar(&rawMac, "mac", "", "use this MAC address")
 	cmd.Flags().StringVar(&bcast, "broadcast", "", "wake broadcast address")
 	cmd.Flags().StringVar(&port, "port", "", "readiness TCP port")
-	cmd.Flags().StringVar(&via, "via", "", "send the wake from this SSH relay")
-	_ = cmd.RegisterFlagCompletionFunc("via", a.completeHostsAnywhere)
+	cmd.Flags().StringVar(&via, "via", "", "send the wake from this SSH relay, e.g. a Tailscale/VPN host on the target's LAN")
+	_ = cmd.RegisterFlagCompletionFunc("via", a.completeRelays)
 	return cmd
 }

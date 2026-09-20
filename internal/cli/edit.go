@@ -107,8 +107,8 @@ Renaming also updates the host inside any groups.`,
 	cmd.Flags().StringVar(&newMac, "mac", "", "new MAC address")
 	cmd.Flags().StringVar(&newBcast, "broadcast", "", "new wake broadcast address")
 	cmd.Flags().StringVar(&newPort, "port", "", "new readiness TCP port")
-	cmd.Flags().StringVar(&newVia, "via", "", "new SSH relay ('' clears it)")
-	_ = cmd.RegisterFlagCompletionFunc("via", a.completeHostsAnywhere)
+	cmd.Flags().StringVar(&newVia, "via", "", "new SSH relay, e.g. a Tailscale/VPN host on the target's LAN ('' clears it)")
+	_ = cmd.RegisterFlagCompletionFunc("via", a.completeRelays)
 	return cmd
 }
 

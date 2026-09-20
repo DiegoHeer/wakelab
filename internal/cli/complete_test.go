@@ -83,3 +83,14 @@ func TestCompleteViaFlagOffersHosts(t *testing.T) {
 	out = complete(t, "edit", "desktop", "--via", "")
 	mustContain(t, out, "server")
 }
+
+func TestCompleteViaFlagOffersSSHConfigHosts(t *testing.T) {
+	env := newTestEnv(t, envHosts, envGroups)
+	env.writeSSHConfig(t, "Host proxmox relaybox\nHost wild*\n")
+	if err := env.run(append([]string{"__complete"}, "--via", "")...); err != nil {
+		t.Fatalf("__complete --via: %v", err)
+	}
+	out := env.out.String()
+	mustContain(t, out, "proxmox", "relaybox", "server")
+	mustNotContain(t, out, "wild*", "lab")
+}
