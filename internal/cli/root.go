@@ -24,7 +24,14 @@ func NewRootCmd(a *App) *cobra.Command {
 		Long: `wake — wake your machines over the network (Wake-on-LAN) and control them over SSH
 
 A <target> is a host name, a group name, a raw MAC address, or the word 'all'.
-Hosts live in ssh-config-style blocks in ~/.wol_hosts; groups in ~/.wol_groups.`,
+Hosts live in ssh-config-style blocks in ~/.wol_hosts; groups in ~/.wol_groups.
+
+Remote wake: a Wake-on-LAN packet only travels on the local network. To wake a
+machine from outside your home, keep one always-on device on its LAN (a Pi, NAS,
+or router) as a relay and reach it over Tailscale, a VPN tunnel, or plain SSH.
+Point a host at it with 'wake add --via <relay>' (or the --via flag); the relay
+sends the packet locally. The relay only needs to be an SSH host — an entry in
+~/.ssh/config is enough, it need not be in ~/.wol_hosts.`,
 		Example: `  wake server                 wake one host
   wake minirack --wait        wake a group and wait until every host is up
   wake status --json          machine-readable status of every host`,

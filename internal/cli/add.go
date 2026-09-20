@@ -101,9 +101,14 @@ func newAddCmd(a *App) *cobra.Command {
 Optional extras (any source above):
   --broadcast <IP>   send the wake packet to this subnet broadcast
   --port <N>         readiness port for 'status --port' and 'wake --wait'
-  --via <relay>      send the wake from this SSH host (a wired relay)
+  --via <relay>      send the wake from this SSH relay on the target's LAN
 
---ssh and --ip need the machine to be online right now.`,
+--ssh and --ip need the machine to be online right now.
+
+Remote wake: a relay is any always-on SSH host on the target's LAN (reachable
+directly, or over Tailscale/VPN). With --via, the --ssh and --ip MAC lookup also
+runs on the relay, so you can add a host on a remote subnet without knowing its
+MAC in advance.`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
