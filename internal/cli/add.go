@@ -33,6 +33,16 @@ func checkNewName(a *App, name string, hosts []host.Host, groups []host.Group) e
 	return nil
 }
 
+// discoverMac reads the target's MAC: through the relay when one is set (so a
+// host on a remote subnet can be added without knowing its MAC), otherwise
+// from this machine.
+func (a *App) discoverMac(ctx context.Context, relay, ip string) string {
+	if relay != "" {
+		return a.macFromIPVia(ctx, relay, ip)
+	}
+	return a.macFromIP(ctx, ip)
+}
+
 // macFromIP pings an IP (to fill the neighbor table), then reads its MAC from
 // `ip neigh show` ("" when not found) — parity with the Bash mac_from_ip.
 func (a *App) macFromIP(ctx context.Context, ip string) string {
@@ -41,6 +51,26 @@ func (a *App) macFromIP(ctx context.Context, ip string) string {
 	if err != nil {
 		return ""
 	}
+	return parseNeighMac(stdout)
+}
+
+// macFromIPVia asks the relay (over SSH) to ping the IP and read its MAC, so
+// the target only needs to be reachable from the relay, not from here.
+func (a *App) macFromIPVia(ctx context.Context, relay, ip string) string {
+	if !host.ValidIP(ip) {
+		return ""
+	}
+	script := fmt.Sprintf("ping -c1 -W1 %s >/dev/null 2>&1; ip neigh show %s", ip, ip)
+	stdout, _, err := a.Runner.Run(ctx, "ssh", relay, script)
+	if err != nil {
+		return ""
+	}
+	return parseNeighMac(stdout)
+}
+
+// parseNeighMac pulls the lladdr MAC out of `ip neigh show` output ("" when
+// absent).
+func parseNeighMac(stdout string) string {
 	fields := strings.Fields(stdout)
 	for i, f := range fields {
 		if f == "lladdr" && i+1 < len(fields) {
@@ -99,12 +129,12 @@ Optional extras (any source above):
 				if ip == "" {
 					return fmt.Errorf("no IP for '%s' in SSH config", name)
 				}
-				mac = a.macFromIP(ctx, ip)
+				mac = a.discoverMac(ctx, via, ip)
 				if mac == "" {
 					return fmt.Errorf("could not read MAC for '%s' (%s). Is it online?", name, ip)
 				}
 			case fromIP != "":
-				mac = a.macFromIP(ctx, fromIP)
+				mac = a.discoverMac(ctx, via, fromIP)
 				if mac == "" {
 					return fmt.Errorf("could not read MAC from %s. Is it online?", fromIP)
 				}

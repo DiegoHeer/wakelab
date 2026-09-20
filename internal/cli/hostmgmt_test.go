@@ -72,6 +72,46 @@ func TestAddDuplicateHost(t *testing.T) {
 	}
 }
 
+// relayNeighRunner answers `ssh <relay> <script>` with a MAC (matched by the
+// IP embedded in the script), plus ssh -G lookups.
+func relayNeighRunner(ips map[string]string, neigh map[string]string) *fakeRunner {
+	f := sshGRunner(ips, nil)
+	inner := f.respond
+	f.respond = func(name string, args []string) (string, string, error) {
+		if name == "ssh" && len(args) == 2 && args[0] != "-G" {
+			for ip, mac := range neigh {
+				if strings.Contains(args[1], ip) {
+					return ip + " dev eth0 lladdr " + mac + " REACHABLE\n", "", nil
+				}
+			}
+			return "", "", nil
+		}
+		return inner(name, args)
+	}
+	return f
+}
+
+func TestAddViaRelayIP(t *testing.T) {
+	env := newTestEnv(t, "", "")
+	env.app.Runner = relayNeighRunner(nil, map[string]string{"192.168.1.50": "AA:BB:CC:DD:EE:22"})
+	if err := env.run("add", "nas", "--ip", "192.168.1.50", "--via", "proxmox"); err != nil {
+		t.Fatalf("add --ip --via: %v", err)
+	}
+	mustContain(t, env.hostsText(t), "Host nas", "aa:bb:cc:dd:ee:22", "proxmox")
+}
+
+func TestAddViaRelaySSH(t *testing.T) {
+	env := newTestEnv(t, "", "")
+	env.app.Runner = relayNeighRunner(
+		map[string]string{"nas": "192.168.1.50"},
+		map[string]string{"192.168.1.50": "AA:BB:CC:DD:EE:33"},
+	)
+	if err := env.run("add", "nas", "--ssh", "--via", "proxmox"); err != nil {
+		t.Fatalf("add --ssh --via: %v", err)
+	}
+	mustContain(t, env.hostsText(t), "Host nas", "aa:bb:cc:dd:ee:33", "proxmox")
+}
+
 func TestAddViaSSH(t *testing.T) {
 	env := newTestEnv(t, "", "")
 	env.app.Runner = neighRunner(
