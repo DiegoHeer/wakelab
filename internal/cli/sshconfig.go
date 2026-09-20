@@ -25,3 +25,25 @@ func (a *App) inSSHConfig(name string) bool {
 	}
 	return false
 }
+
+// sshConfigHosts lists concrete Host names from ~/.ssh/config, skipping
+// wildcard and negated patterns (nil on error).
+func (a *App) sshConfigHosts() []string {
+	data, err := os.ReadFile(a.SSHConfigPath)
+	if err != nil {
+		return nil
+	}
+	var names []string
+	for _, line := range strings.Split(string(data), "\n") {
+		fields := strings.Fields(line)
+		if len(fields) < 2 || fields[0] != "Host" {
+			continue
+		}
+		for _, f := range fields[1:] {
+			if !strings.ContainsAny(f, "*?!") {
+				names = append(names, f)
+			}
+		}
+	}
+	return names
+}

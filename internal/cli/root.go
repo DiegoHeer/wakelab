@@ -49,10 +49,10 @@ Hosts live in ssh-config-style blocks in ~/.wol_hosts; groups in ~/.wol_groups.`
 	root.Flags().BoolVar(&opts.wait, "wait", false, "poll until the target is up")
 	root.Flags().IntVar(&opts.timeout, "timeout", 60, "--wait timeout in seconds")
 	root.Flags().StringVar(&opts.port, "port", "", "--wait probes this TCP port on every host")
-	root.Flags().StringVar(&opts.via, "via", "", "send the wake from this SSH relay ('' forces local)")
+	root.Flags().StringVar(&opts.via, "via", "", "send the wake from this SSH relay, e.g. a Tailscale/VPN host on the target's LAN ('' forces local)")
 	root.Flags().StringVar(&opts.broadcast, "broadcast", "", "broadcast address for a raw MAC target")
 	root.ValidArgsFunction = a.completeTargets
-	_ = root.RegisterFlagCompletionFunc("via", a.completeHostsAnywhere)
+	_ = root.RegisterFlagCompletionFunc("via", a.completeRelays)
 
 	root.AddCommand(newLsCmd(a))
 	root.AddCommand(newStatusCmd(a))

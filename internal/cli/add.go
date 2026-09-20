@@ -172,7 +172,7 @@ Optional extras (any source above):
 	cmd.Flags().StringVar(&rawMac, "mac", "", "use this MAC address")
 	cmd.Flags().StringVar(&bcast, "broadcast", "", "wake broadcast address")
 	cmd.Flags().StringVar(&port, "port", "", "readiness TCP port")
-	cmd.Flags().StringVar(&via, "via", "", "send the wake from this SSH relay")
-	_ = cmd.RegisterFlagCompletionFunc("via", a.completeHostsAnywhere)
+	cmd.Flags().StringVar(&via, "via", "", "send the wake from this SSH relay, e.g. a Tailscale/VPN host on the target's LAN")
+	_ = cmd.RegisterFlagCompletionFunc("via", a.completeRelays)
 	return cmd
 }
